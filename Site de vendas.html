@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Soluções Inteligentes - Otimize Seu Tempo</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Configurações Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 900: '#0c4a6e' },
+                        accent: { 500: '#8b5cf6', 600: '#7c3aed' },
+                        dark: { 800: '#1e293b', 900: '#0f172a' }
+                    },
+                    boxShadow: {
+                        'glow': '0 0 20px rgba(14, 165, 233, 0.5)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.5, 0, 0, 1); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        .phone-scroll::-webkit-scrollbar { width: 3px; }
+        .phone-scroll::-webkit-scrollbar-track { background: transparent; }
+        .phone-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .carousel-slide { transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease; position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; z-index: 0; object-fit: contain; object-position: center; background-color: #000; }
+        .carousel-slide.active { opacity: 1; z-index: 10; transform: scale(1); }
+        .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.5); }
+        .toggle-checkbox:checked { right: 0; border-color: #0ea5e9; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #0ea5e9; }
+        @keyframes float-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        .animate-float { animation: float-slow 6s ease-in-out infinite; }
+        .text-gradient { background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        @media (max-width: 768px) {
+            .mobile-menu-active { display: block !important; animation: slideDown 0.3s ease-out; }
+            @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased overflow-x-hidden selection:bg-brand-500 selection:text-white">
+
+    <!-- NAVBAR PREMIUM -->
+    <nav class="fixed w-full z-50 transition-all duration-300 glass-panel" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center gap-2 cursor-pointer group z-50">
+                    <div class="w-10 h-10 bg-gradient-to-tr from-brand-500 to-accent-500 rounded-xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition duration-300">
+                        <i class="fa-solid fa-layer-group text-lg"></i>
+                    </div>
+                    <span class="font-bold text-2xl tracking-tight text-slate-900" id="nav-logo-text">NEXUS</span>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-8">
+                    <a href="#produtos" class="text-slate-600 hover:text-brand-600 font-medium transition hover:-translate-y-0.5 inline-block">Nossos Apps</a>
+                    <a href="#personalizado" class="text-slate-600 hover:text-brand-600 font-medium transition hover:-translate-y-0.5 inline-block" id="nav-custom-link">Quero um App</a>
+                </div>
+                
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden z-50 text-slate-600 focus:outline-none p-2" onclick="toggleMobileMenu()">
+                    <i class="fa-solid fa-bars text-2xl" id="menu-icon"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu" class="hidden absolute top-20 left-0 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 p-4 shadow-xl md:hidden">
+            <div class="flex flex-col space-y-4 text-center">
+                <a href="#produtos" class="text-slate-800 font-bold py-2 hover:text-brand-600" onclick="toggleMobileMenu()">Nossos Apps</a>
+                <a href="#personalizado" class="text-slate-800 font-bold py-2 hover:text-brand-600" onclick="toggleMobileMenu()">Quero um App</a>
+                <button onclick="toggleAdminPanel(); toggleMobileMenu()" class="text-slate-500 text-sm py-2">Área Admin</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section id="section-hero" class="relative pt-32 pb-16 lg:pt-48 lg:pb-32 overflow-hidden bg-white">
+        <!-- Background Elements -->
+        <div class="absolute top-0 right-0 w-[500px] lg:w-[800px] h-[500px] lg:h-[800px] bg-brand-100/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 opacity-70"></div>
+        <div class="absolute bottom-0 left-0 w-[400px] lg:w-[600px] h-[400px] lg:h-[600px] bg-accent-50/50 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4 opacity-70"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+                
+                <!-- Text Content -->
+                <div class="text-center lg:text-left reveal active order-2 lg:order-1">
+                    <h1 class="text-4xl sm:text-5xl lg:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.1] mb-6" id="hero-title">
+                        Poupe Tempo e <span class="text-gradient">Dinheiro</span> com a Nexus.
+                    </h1>
+                    
+                    <p class="text-lg lg:text-xl text-slate-600 mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-light" id="hero-subtitle">
+                        Transformamos problemas operacionais em soluções tecnológicas de alto nível. Conte-nos seu desafio.
+                    </p>
+
+                    <!-- COMPATIBILITY -->
+                    <div class="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-10 text-slate-500 text-sm font-medium">
+                        <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-sm border border-slate-100 max-w-full justify-center flex-wrap">
+                            <div class="flex gap-2">
+                                <i class="fa-brands fa-android text-lg text-green-500" title="Android"></i>
+                                <i class="fa-brands fa-apple text-lg text-slate-800" title="iOS/Mac"></i>
+                                <i class="fa-brands fa-windows text-lg text-blue-500" title="Windows"></i>
+                            </div>
+                            <div class="w-px h-4 bg-slate-300 hidden sm:block"></div>
+                            <span class="text-xs sm:text-sm text-center">Compatível com todos os dispositivos</span>
+                        </div>
+                    </div>
+                    
+                    <!-- CUSTOM APP FORM -->
+                    <div id="personalizado" class="glass-panel p-6 lg:p-8 rounded-3xl shadow-xl border-t border-white relative overflow-hidden group hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1 mx-auto lg:mx-0 max-w-lg lg:max-w-none">
+                        <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-brand-500 to-accent-500"></div>
+                        
+                        <div class="flex flex-col gap-1 mb-4 pl-4 lg:pl-0">
+                            <h3 class="text-lg lg:text-xl font-bold text-slate-900 flex items-center gap-2" id="custom-title">
+                                <i class="fa-solid fa-wand-magic-sparkles text-accent-500"></i> Quero um aplicativo personalizado
+                            </h3>
+                            <span class="text-xs font-bold text-brand-600 uppercase tracking-wider block">🚀 Consultoria Inteligente</span>
+                        </div>
+
+                        <p class="text-sm text-slate-500 mb-6 pl-0 lg:pl-7 leading-relaxed" id="custom-desc">
+                            Descreva sua ideia ou problema. Nossa IA e especialistas criarão a solução perfeita.
+                        </p>
+                        
+                        <div class="space-y-4 pl-0 lg:pl-7">
+                            <textarea id="diag-problem" rows="2" placeholder="Ex: Preciso controlar meu estoque..." class="w-full px-5 py-4 rounded-xl bg-white border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none resize-none text-sm transition shadow-sm"></textarea>
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <input id="diag-phone" type="tel" placeholder="WhatsApp (DDD + Nº)" class="flex-1 px-5 py-4 rounded-xl bg-white border border-slate-200 focus:ring-2 focus:ring-brand-500 outline-none text-sm transition shadow-sm">
+                                <button onclick="submitDiagnostic()" class="px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-3 whitespace-nowrap transform active:scale-95 group">
+                                    Enviar <i class="fa-solid fa-paper-plane group-hover:translate-x-1 transition"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visual Content (Hero Phone) -->
+                <div class="flex justify-center items-center order-1 lg:order-2 mb-8 lg:mb-0 w-full">
+                    <!-- Responsive Phone Container -->
+                    <div class="relative w-[260px] h-[520px] lg:w-[320px] lg:h-[650px] bg-slate-900 rounded-[2.5rem] lg:rounded-[3.5rem] shadow-2xl border-[6px] border-slate-300 ring-1 ring-slate-900/50 overflow-hidden z-20 group/hero-phone animate-float transform scale-90 sm:scale-100 transition-transform">
+                        <div class="absolute top-0 w-full flex justify-center z-50 pt-2">
+                            <div class="w-24 lg:w-32 h-6 lg:h-8 bg-black rounded-full flex items-center justify-center gap-2 lg:gap-3 px-3">
+                                <div class="w-2 h-2 rounded-full bg-slate-800/50"></div>
+                                <div class="w-1.5 h-1.5 rounded-full bg-blue-500/20 animate-pulse"></div>
+                            </div>
+                        </div>
+                        <div class="w-full h-full bg-white relative flex flex-col">
+                            <div class="bg-white/90 backdrop-blur h-20 lg:h-24 pt-10 lg:pt-12 px-6 flex justify-between items-center z-30 absolute top-0 w-full border-b border-slate-100">
+                                <span class="font-bold text-slate-800 text-lg">Nexus</span>
+                                <div class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center"><i class="fa-regular fa-bell text-slate-600"></i></div>
+                            </div>
+                            <div class="relative w-full h-full pt-0 pb-0 overflow-hidden bg-slate-50" id="hero-carousel-container">
+                                <!-- Slides -->
+                            </div>
+                            <div class="absolute bottom-8 w-full flex flex-col items-center gap-4 z-30">
+                                <div class="flex gap-2" id="hero-indicators"></div>
+                            </div>
+                            <button onclick="moveHeroSlide(-1)" class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/20 backdrop-blur rounded-full flex items-center justify-center text-white z-30 opacity-0 group-hover/hero-phone:opacity-100 transition hover:bg-black/40"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                            <button onclick="moveHeroSlide(1)" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/20 backdrop-blur rounded-full flex items-center justify-center text-white z-30 opacity-0 group-hover/hero-phone:opacity-100 transition hover:bg-black/40"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                        </div>
+                    </div>
+                    <div class="absolute -z-10 w-full h-full max-w-[500px] max-h-[500px] bg-gradient-to-tr from-brand-200 to-accent-200 rounded-full blur-[80px] opacity-60"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRODUCTS SHOWCASE -->
+    <section id="section-produtos" class="py-20 lg:py-24 bg-slate-50 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 lg:mb-24 reveal">
+                <h2 class="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight" id="products-title">Soluções Prontas</h2>
+                <p class="text-lg lg:text-xl text-slate-500 max-w-2xl mx-auto font-light" id="products-subtitle">Tecnologia desenhada para escalar cada setor do seu negócio.</p>
+            </div>
+
+            <div id="products-container" class="space-y-32 lg:space-y-40">
+                <!-- Products -->
+            </div>
+            
+            <div id="no-products-msg" class="hidden text-center text-slate-400 py-10 italic">
+                Nenhum produto cadastrado no momento.
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer id="section-footer" class="bg-dark-900 text-slate-300 pt-16 lg:pt-20 pb-10 border-t border-slate-800/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-start gap-12">
+                <div class="text-center md:text-left w-full md:w-auto">
+                    <div class="flex items-center justify-center md:justify-start gap-3 mb-6 text-white group">
+                        <div class="w-10 h-10 bg-brand-600 rounded-lg flex items-center justify-center shadow-glow">
+                            <i class="fa-solid fa-layer-group text-lg"></i>
+                        </div>
+                        <span class="font-bold text-2xl tracking-tight" id="footer-company-name">Nexus Educação</span>
+                    </div>
+                    <div class="text-sm text-slate-400 space-y-3 font-light">
+                        <p class="font-medium text-slate-200 text-base mb-4" id="footer-slogan">Soluções Inteligentes para poupar tempo e dinheiro.</p>
+                        <p class="flex items-center justify-center md:justify-start gap-3 hover:text-white transition">
+                            <i class="fa-solid fa-id-card text-brand-500"></i> <span id="footer-cnpj">CNPJ: 62.323.279/0001-00</span>
+                        </p>
+                        <a href="https://wa.me/5588999361992" target="_blank" class="flex items-center justify-center md:justify-start gap-3 hover:text-green-400 transition group/link" id="footer-phone-link">
+                            <i class="fa-brands fa-whatsapp text-green-500 group-hover/link:scale-110 transition"></i> <span id="footer-phone">(88) 99936-1992</span>
+                        </a>
+                        <a href="mailto:nexuseducacao.ct@gmail.com" class="flex items-center justify-center md:justify-start gap-3 hover:text-brand-400 transition group/link" id="footer-email-link">
+                            <i class="fa-solid fa-envelope text-brand-500 group-hover/link:scale-110 transition"></i> <span id="footer-email">nexuseducacao.ct@gmail.com</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-center md:justify-end gap-4 w-full md:w-auto self-center md:self-start">
+                    <button onclick="toggleAdminPanel()" class="text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-white transition flex items-center gap-2 border border-slate-800 px-5 py-3 rounded-lg hover:bg-slate-800 hover:border-slate-700">
+                        <i class="fa-solid fa-lock"></i> Admin
+                    </button>
+                </div>
+            </div>
+            <div class="border-t border-slate-800/50 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 gap-4 text-center md:text-left">
+                <p id="footer-copy">&copy; 2026 Nexus Educação Soluções Inteligentes. Todos os direitos reservados.</p>
+                <div class="flex gap-6 justify-center md:justify-start">
+                    <a href="#" class="hover:text-white transition">Termos de Uso</a>
+                    <a href="#" class="hover:text-white transition">Privacidade</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ADMIN PANEL -->
+    <div id="adminPanel" class="fixed inset-0 z-[120] hidden bg-dark-900/90 backdrop-blur-md overflow-hidden flex flex-col transition-opacity">
+        <div class="flex-1 max-w-7xl w-full mx-auto my-4 bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row h-[95vh] ring-1 ring-slate-900/10 relative">
+            
+            <!-- Login Overlay (COBRE TUDO) -->
+            <div id="adminLogin" class="absolute inset-0 bg-slate-50 z-[100] flex items-center justify-center p-4">
+                <div class="max-w-md w-full text-center bg-white p-10 rounded-3xl shadow-xl border border-slate-100 relative">
+                    <button onclick="toggleAdminPanel()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+                    <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl text-slate-400">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2 text-slate-900">Acesso Restrito</h3>
+                    <p class="text-sm text-slate-500 mb-6">Área exclusiva para administradores.</p>
+                    <input type="password" id="adminPass" placeholder="Senha" class="w-full px-6 py-4 border border-slate-200 rounded-xl mb-4 text-center text-lg focus:ring-2 focus:ring-brand-500 outline-none transition">
+                    <button onclick="handleAdminLogin()" class="w-full bg-slate-900 text-white py-4 rounded-xl hover:bg-brand-600 font-bold transition shadow-lg mb-4">Entrar</button>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="w-full md:w-72 bg-slate-50 border-r border-slate-200 flex flex-col hidden md:flex">
+                <div class="p-8 border-b border-slate-200">
+                    <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-3">
+                        <div class="w-8 h-8 bg-slate-900 rounded flex items-center justify-center text-white text-sm"><i class="fa-solid fa-sliders"></i></div>
+                        Admin
+                    </h2>
+                </div>
+                <nav class="flex-1 overflow-y-auto p-4 space-y-2">
+                    <button onclick="switchAdminTab('tab-hero')" class="admin-tab-btn w-full text-left px-5 py-4 rounded-xl font-semibold text-slate-600 hover:bg-white hover:shadow-md transition active-tab bg-white shadow-sm text-brand-600 flex items-center gap-3"><i class="fa-solid fa-heading"></i> Hero</button>
+                    <button onclick="switchAdminTab('tab-custom')" class="admin-tab-btn w-full text-left px-5 py-4 rounded-xl font-semibold text-slate-600 hover:bg-white hover:shadow-md transition flex items-center gap-3"><i class="fa-solid fa-wand-magic-sparkles"></i> Custom</button>
+                    <button onclick="switchAdminTab('tab-products')" class="admin-tab-btn w-full text-left px-5 py-4 rounded-xl font-semibold text-slate-600 hover:bg-white hover:shadow-md transition flex items-center gap-3"><i class="fa-solid fa-boxes-stacked"></i> Produtos</button>
+                    <button onclick="switchAdminTab('tab-footer')" class="admin-tab-btn w-full text-left px-5 py-4 rounded-xl font-semibold text-slate-600 hover:bg-white hover:shadow-md transition flex items-center gap-3"><i class="fa-solid fa-shoe-prints"></i> Rodapé</button>
+                </nav>
+                <div class="p-6 border-t border-slate-200">
+                    <button onclick="logoutAdmin()" class="w-full text-center text-red-600 hover:bg-red-50 px-4 py-3 rounded-xl transition font-bold border border-transparent hover:border-red-200 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-right-from-bracket"></i> Sair do Painel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Sidebar Toggle (visible only on mobile) -->
+            <div class="md:hidden p-4 border-b border-slate-200 bg-white flex justify-between items-center">
+                <span class="font-bold">Menu Admin</span>
+                <select onchange="switchAdminTab(this.value)" class="p-2 border rounded text-sm w-32">
+                    <option value="tab-hero">Hero</option>
+                    <option value="tab-custom">Custom</option>
+                    <option value="tab-products">Produtos</option>
+                    <option value="tab-footer">Rodapé</option>
+                </select>
+                <div class="flex gap-3">
+                    <button onclick="logoutAdmin()" class="text-red-500 bg-red-50 p-2 rounded hover:bg-red-100 transition" title="Sair"><i class="fa-solid fa-right-from-bracket"></i></button>
+                    <button onclick="toggleAdminPanel()" class="text-slate-500 bg-slate-100 p-2 rounded hover:bg-slate-200 transition"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 bg-slate-50/50 overflow-y-auto p-4 lg:p-10 relative">
+                <div id="adminContent" class="hidden space-y-8 pb-20 max-w-4xl mx-auto">
+                    <!-- TAB HERO -->
+                    <div id="tab-hero" class="admin-tab-content animate-fade-in">
+                        <h3 class="text-2xl lg:text-3xl font-bold text-slate-900 mb-8">Configuração do Hero</h3>
+                        <div class="flex justify-end mb-6">
+                            <button onclick="saveHeroSettings()" class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition transform hover:-translate-y-1">
+                                <i class="fa-solid fa-floppy-disk"></i> Salvar Alterações
+                            </button>
+                        </div>
+                        <div class="bg-white p-6 lg:p-8 rounded-2xl shadow-sm border border-slate-200 mb-8 space-y-6">
+                            <h4 class="font-bold text-lg text-slate-900 border-b pb-4">Textos</h4>
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-2">Título Principal</label><input type="text" id="admin-hero-title" class="w-full border border-slate-300 p-3 rounded-lg" oninput="liveUpdateText('hero-title', this.value)"></div>
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-2">Subtítulo</label><textarea id="admin-hero-subtitle" rows="3" class="w-full border border-slate-300 p-3 rounded-lg" oninput="liveUpdateText('hero-subtitle', this.value)"></textarea></div>
+                        </div>
+                        <div class="bg-white p-6 lg:p-8 rounded-2xl shadow-sm border border-slate-200">
+                            <h4 class="font-bold text-lg text-slate-900 border-b pb-4 mb-6">Imagens Celular (Carrossel)</h4>
+                            <div class="flex gap-4 mb-6 flex-wrap" id="hero-gallery-preview"></div>
+                            <label class="cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 hover:border-brand-500 text-slate-500 rounded-xl p-8 flex flex-col items-center justify-center"><i class="fa-solid fa-cloud-arrow-up text-3xl mb-2"></i><span class="font-bold">Add Imagens</span><input type="file" class="hidden" accept="image/*" multiple onchange="handleHeroGalleryUpload(this)"></label>
+                        </div>
+                    </div>
+                    
+                    <!-- TAB CUSTOM -->
+                    <div id="tab-custom" class="admin-tab-content hidden animate-fade-in">
+                        <h3 class="text-3xl font-bold text-slate-900 mb-8">Seção Custom</h3>
+                        <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                            <div class="space-y-6">
+                                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-2">Título</label><input type="text" id="admin-custom-title" class="w-full border p-3 rounded-lg" oninput="liveUpdateText('custom-title', this.value)"></div>
+                                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-2">Descrição</label><input type="text" id="admin-custom-desc" class="w-full border p-3 rounded-lg" oninput="liveUpdateText('custom-desc', this.value)"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB PRODUCTS -->
+                    <div id="tab-products" class="admin-tab-content hidden animate-fade-in">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                            <h3 class="text-3xl font-bold text-slate-900">Produtos</h3>
+                            <div class="flex gap-3 w-full sm:w-auto">
+                                <button onclick="deleteAllProducts()" class="flex-1 sm:flex-none bg-white border border-red-200 text-red-600 px-5 py-2.5 rounded-lg font-bold flex items-center justify-center gap-2"><i class="fa-solid fa-trash-can"></i> Limpar</button>
+                                <button onclick="showAddProductForm()" class="flex-1 sm:flex-none bg-brand-600 text-white px-5 py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 shadow-lg"><i class="fa-solid fa-plus"></i> Novo</button>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-2">Título Seção</label><input type="text" id="admin-products-title" class="w-full border p-3 rounded-lg" oninput="liveUpdateText('products-title', this.value)"></div>
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-2">Subtítulo</label><input type="text" id="admin-products-subtitle" class="w-full border p-3 rounded-lg" oninput="liveUpdateText('products-subtitle', this.value)"></div>
+                        </div>
+                        <div id="admin-products-list" class="grid gap-4"></div>
+                    </div>
+
+                    <!-- TAB FOOTER -->
+                    <div id="tab-footer" class="admin-tab-content hidden animate-fade-in">
+                        <h3 class="text-3xl font-bold text-slate-900 mb-8">Rodapé</h3>
+                        <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="col-span-full"><label class="block text-xs font-bold text-slate-500 uppercase mb-2">Empresa</label><input type="text" id="admin-footer-company" class="w-full border p-3 rounded-lg" oninput="liveUpdateText('footer-company-name', this.value)"></div>
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-2">CNPJ</label><input type="text" id="admin-footer-cnpj" class="w-full border p-3 rounded-lg" oninput="liveUpdateText('footer-cnpj', this.value)"></div>
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-2">WhatsApp</label><input type="text" id="admin-footer-phone" class="w-full border p-3 rounded-lg" oninput="liveUpdateText('footer-phone', this.value)"></div>
+                            <div class="col-span-full"><label class="block text-xs font-bold text-slate-500 uppercase mb-2">E-mail</label><input type="text" id="admin-footer-email" class="w-full border p-3 rounded-lg" oninput="liveUpdateText('footer-email', this.value)"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRODUCT FORM -->
+    <div id="productFormOverlay" class="fixed inset-0 z-[130] hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col relative my-auto">
+            <div class="px-8 py-5 border-b flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-xl text-slate-800" id="form-title">Produto</h3>
+                <button onclick="closeProductForm()" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-200 transition"><i class="fa-solid fa-xmark text-slate-500"></i></button>
+            </div>
+            <div class="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+                <input type="hidden" id="edit-index">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="col-span-full"><label class="block text-xs font-bold text-slate-500 uppercase mb-2">Nome</label><input type="text" id="inp-title" class="w-full border p-3 rounded-lg"></div>
+                    <div class="col-span-full"><label class="block text-xs font-bold text-slate-500 uppercase mb-2">Descrição</label><textarea id="inp-desc" rows="3" class="w-full border p-3 rounded-lg"></textarea></div>
+                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-2">Link Botão</label><input type="text" id="inp-link" placeholder="Vazio = WhatsApp" class="w-full border p-3 rounded-lg"></div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Tema</label>
+                        <select id="inp-color" class="w-full border p-3 rounded-lg bg-white"><option value="green">Verde</option><option value="brand">Azul</option><option value="purple">Roxo</option><option value="orange">Laranja</option><option value="red">Vermelho</option></select>
+                    </div>
+                    <div class="col-span-full"><label class="block text-xs font-bold text-slate-500 uppercase mb-2">Vídeo Embed</label><input type="text" id="inp-video" class="w-full border p-3 rounded-lg font-mono text-sm"></div>
+                    <div class="col-span-full">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Capa do Vídeo</label>
+                        <div id="video-thumb-preview" class="w-full h-32 bg-slate-100 rounded-lg mb-2 bg-cover bg-center border border-slate-200 flex items-center justify-center text-slate-400">
+                             <span class="text-xs">Sem capa (Usa 1ª img do celular)</span>
+                        </div>
+                        <label class="flex justify-center items-center border-2 border-dashed border-slate-300 rounded-xl p-4 hover:bg-slate-50 cursor-pointer">
+                            <span class="text-sm font-medium text-slate-500">Alterar Capa do Vídeo</span>
+                            <input type="file" id="inp-video-thumb" class="hidden" accept="image/*" onchange="handleVideoThumbUpload(this)">
+                        </label>
+                    </div>
+                    <div class="col-span-full">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Imagens Celular (Carrossel)</label>
+                        <div class="flex gap-3 mb-3 flex-wrap" id="admin-gallery-preview"></div>
+                        <label class="flex justify-center items-center border-2 border-dashed border-slate-300 rounded-xl p-6 hover:bg-slate-50 cursor-pointer"><i class="fa-solid fa-plus text-2xl text-slate-400 mr-2"></i><span class="text-sm font-medium text-slate-500">Adicionar</span><input type="file" id="inp-img-multi" class="hidden" accept="image/*" multiple onchange="handleMultiUpload(this)"></label>
+                    </div>
+                </div>
+            </div>
+            <div class="px-8 py-5 border-t bg-slate-50 flex justify-end gap-3">
+                <button onclick="closeProductForm()" class="px-6 py-3 text-slate-600 font-bold hover:text-slate-900">Cancelar</button>
+                <button onclick="saveProduct()" class="px-8 py-3 bg-brand-600 text-white font-bold rounded-xl shadow-lg hover:bg-brand-700">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIDEO MODAL -->
+    <div id="videoModal" class="fixed inset-0 z-[110] hidden flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+        <div class="w-full max-w-6xl relative z-20 aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10">
+            <button onclick="closeVideoModal()" class="absolute top-4 right-4 text-white hover:text-red-500 z-30 bg-black/50 rounded-full w-10 h-10 flex items-center justify-center transition backdrop-blur"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <iframe id="videoFrame" class="w-full h-full" src="" title="Video Player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIG ---
+        const SUPABASE_URL = "https://ibtsvulhwfntlplxgcry.supabase.co"; 
+        const SUPABASE_KEY = "sb_publishable_PAgNdXYgSE-yKK6OsachoA_MC91FBzX";
+        const COMPANY_PHONE = "5588999361992";
+        
+        let supabaseClient = null;
+        let useSupabase = false;
+
+        // Default Data
+        let siteData = {
+            hero: { title: 'Poupe Tempo e <span class="text-gradient">Dinheiro</span> com a Nexus.', subtitle: "Transformamos problemas operacionais em soluções tecnológicas.", images: ["https://placehold.co/640x1280/0f172a/ffffff?text=Dashboard", "https://placehold.co/640x1280/1e293b/ffffff?text=Analytics"] },
+            custom: { title: "Quero um aplicativo personalizado", desc: "Descreva sua ideia ou problema. Nossa IA e especialistas criarão a solução perfeita." },
+            products: { title: "Soluções Prontas", subtitle: "Tecnologia desenhada para escalar cada setor do seu negócio.", list: [] },
+            footer: { company: "Nexus Educação Soluções Inteligentes", slogan: "Soluções Inteligentes.", cnpj: "CNPJ: 62.323.279/0001-00", phone: "(88) 99936-1992", email: "nexuseducacao.ct@gmail.com", copy: "© 2026 Nexus." }
+        };
+        let sliderStates = {}, heroSliderIndex = 0, currentEditingImages = [], currentVideoThumb = null;
+
+        // --- INIT ---
+        window.onload = async function() {
+            try {
+                if(typeof supabase !== 'undefined' && SUPABASE_URL.startsWith('https')) {
+                    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    useSupabase = true;
+                    await fetchSupabaseData();
+                }
+            } catch(e) { console.log("Running Local Mode", e); }
+            
+            initSite();
+            
+            window.addEventListener('scroll', () => {
+                const nav = document.getElementById('navbar');
+                if(window.scrollY > 50) { nav.classList.add('shadow-md','bg-white/95'); nav.classList.remove('h-20'); nav.classList.add('h-16'); } 
+                else { nav.classList.remove('shadow-md','bg-white/95','h-16'); nav.classList.add('h-20'); }
+            });
+        };
+
+        // --- SUPABASE FETCH ---
+        async function fetchSupabaseData() {
+            if(!useSupabase) return;
+            const { data: configData } = await supabaseClient.from('site_config').select('*');
+            if(configData) {
+                configData.forEach(item => {
+                    if(siteData[item.key]) {
+                         if (typeof siteData[item.key] === 'object' && !Array.isArray(siteData[item.key])) {
+                             siteData[item.key] = { ...siteData[item.key], ...item.value };
+                         } else {
+                             siteData[item.key] = item.value;
+                         }
+                    }
+                });
+            }
+            const { data: prodData } = await supabaseClient.from('products').select('*').order('id');
+            if(prodData) {
+                siteData.products.list = prodData.map(p => ({
+                    id: p.id,
+                    title: p.title,
+                    desc: p.description,
+                    video: p.video_url,
+                    link: p.link_url,
+                    color: p.color_theme,
+                    icon: p.icon_class,
+                    images: p.images || [],
+                    video_thumb: p.video_thumb // Fetch video thumb
+                }));
+            }
+        }
+
+        // --- SUPABASE UPLOAD ---
+        async function uploadFileToSupabase(file) {
+            const fileName = `${Date.now()}_${file.name.replace(/\s/g, '_')}`;
+            const { data, error } = await supabaseClient.storage.from('product-images').upload(fileName, file);
+            if (error) throw error;
+            const { data: publicData } = supabaseClient.storage.from('product-images').getPublicUrl(fileName);
+            return publicData.publicUrl;
+        }
+
+        // --- SITE RENDERING ---
+        function initSite() {
+            document.getElementById('hero-title').innerHTML = siteData.hero.title;
+            document.getElementById('hero-subtitle').innerText = siteData.hero.subtitle;
+            renderHeroCarousel();
+            document.getElementById('custom-title').innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-accent-500"></i> ${siteData.custom.title}`;
+            document.getElementById('custom-desc').innerText = siteData.custom.desc;
+            document.getElementById('products-title').innerText = siteData.products.title;
+            document.getElementById('products-subtitle').innerText = siteData.products.subtitle;
+            renderProducts();
+            document.getElementById('footer-company-name').innerText = siteData.footer.company;
+            document.getElementById('footer-slogan').innerText = siteData.footer.slogan;
+            document.getElementById('footer-cnpj').innerText = siteData.footer.cnpj;
+            updatePhoneLink(siteData.footer.phone);
+            updateEmailLink(siteData.footer.email);
+            document.getElementById('footer-copy').innerText = siteData.footer.copy;
+            setupScrollReveal();
+        }
+
+        function updatePhoneLink(phone) { document.getElementById('footer-phone').innerText = phone; document.getElementById('footer-phone-link').href = `https://wa.me/55${phone.replace(/\D/g,'')}`; }
+        function updateEmailLink(email) { document.getElementById('footer-email').innerText = email; document.getElementById('footer-email-link').href = `mailto:${email}`; }
+        
+        function renderHeroCarousel() {
+            const c = document.getElementById('hero-carousel-container');
+            const ind = document.getElementById('hero-indicators');
+            let slides='', dots='';
+            (siteData.hero.images || []).forEach((img, i) => {
+                slides += `<img src="${img}" class="carousel-slide ${i===heroSliderIndex?'active':''}" id="hero-slide-${i}">`;
+                dots += `<div class="h-2 rounded-full transition-all cursor-pointer ${i===heroSliderIndex?'bg-slate-800 w-6':'bg-slate-300 w-2'}" id="hero-dot-${i}"></div>`;
+            });
+            c.innerHTML = slides; ind.innerHTML = dots;
+        }
+        function moveHeroSlide(d) {
+            const t = (siteData.hero.images || []).length;
+            if(t === 0) return;
+            heroSliderIndex = (heroSliderIndex + d + t) % t;
+            renderHeroCarousel();
+        }
+        function toggleMobileMenu() {
+            const m = document.getElementById('mobile-menu');
+            m.classList.toggle('hidden');
+            m.classList.toggle('mobile-menu-active');
+        }
+
+        function getYouTubeEmbed(url) {
+            if (!url) return '';
+            let videoId = '';
+            if (url.includes('youtube.com/embed/')) return url;
+            if (url.includes('watch?v=')) videoId = url.split('v=')[1].split('&')[0];
+            else if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1];
+            return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+        }
+
+        function renderProducts() {
+            const c = document.getElementById('products-container');
+            c.innerHTML = '';
+            if(!siteData.products.list.length) return document.getElementById('no-products-msg').classList.remove('hidden');
+            document.getElementById('no-products-msg').classList.add('hidden');
+
+            siteData.products.list.forEach(p => {
+                if(sliderStates[p.id] === undefined) sliderStates[p.id] = 0;
+                const theme = p.color === 'green' ? 'text-green-600 bg-green-50' : p.color === 'purple' ? 'text-purple-600 bg-purple-50' : 'text-brand-600 bg-brand-50';
+                const imgs = (p.images && p.images.length) ? p.images : ["https://placehold.co/640x1280/e2e8f0/1e293b?text=App"];
+                
+                // Use custom video thumb if available, otherwise first carousel image
+                const videoCover = p.video_thumb || imgs[0];
+
+                let slides='', dots='';
+                imgs.forEach((img, i) => {
+                    slides += `<img src="${img}" class="carousel-slide ${i===0?'active':''}" id="slide-${p.id}-${i}">`;
+                    dots += `<div class="h-1.5 rounded-full transition-all ${i===0?'bg-slate-800 w-4':'bg-slate-300 w-1.5'}" id="dot-${p.id}-${i}"></div>`;
+                });
+
+                let action = p.link ? `window.open('${p.link}','_blank')` : `contactWhatsApp('${p.title}')`;
+                let embedUrl = getYouTubeEmbed(p.video);
+
+                const html = `
+                <div class="flex flex-col lg:flex-row items-center gap-8 lg:gap-12 reveal relative group mb-20 border-b border-slate-100 pb-16 last:border-0" id="${p.id}">
+                    <!-- Text Side -->
+                    <div class="flex-1 space-y-6 order-2 lg:order-1 text-center lg:text-left w-full lg:max-w-md">
+                        <div class="inline-block p-3 rounded-2xl ${theme} shadow-sm"><i class="fa-solid ${p.icon||'fa-star'} text-2xl"></i></div>
+                        <h3 class="text-3xl lg:text-4xl font-bold text-slate-900">${p.title}</h3>
+                        <p class="text-lg text-slate-600 font-light leading-relaxed">${p.desc}</p>
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-2">
+                            <button onclick="${action}" class="px-8 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg transition transform hover:-translate-y-1 flex items-center justify-center gap-2"><i class="fa-solid fa-rocket"></i> Testar Grátis</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Visual Side: Video (Left) + Phone (Right) -->
+                    <div class="flex-1 flex flex-col lg:flex-row items-center justify-center gap-8 order-1 lg:order-2 w-full">
+                        
+                        <!-- Video Card -->
+                        <div class="w-full max-w-[300px] aspect-video bg-white rounded-xl shadow-xl border-4 border-white cursor-pointer hover:scale-105 transition duration-300 relative group/vidcard order-2 lg:order-1" onclick="openVideoModal('${embedUrl}')">
+                            <img src="${videoCover}" class="w-full h-full object-cover rounded-lg group-hover/vidcard:opacity-90 transition">
+                            <div class="absolute inset-0 flex items-center justify-center bg-black/10 group-hover/vidcard:bg-black/20 transition">
+                                <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg play-btn-pulse">
+                                    <i class="fa-solid fa-play text-xl text-brand-600 ml-1"></i>
+                                </div>
+                            </div>
+                            <div class="absolute bottom-0 w-full bg-gradient-to-t from-black/80 to-transparent text-white text-xs py-2 text-center font-bold rounded-b-lg">
+                                Veja a solução em menos de 1 min
+                            </div>
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="relative w-[240px] h-[480px] lg:w-[260px] lg:h-[520px] bg-slate-900 rounded-[2.5rem] shadow-2xl border-[6px] border-slate-800 overflow-hidden shrink-0 group-hover:scale-[1.02] transition duration-500 order-1 lg:order-2">
+                            <div class="absolute top-0 w-full h-6 bg-slate-900 flex justify-center z-20"><div class="w-20 h-4 bg-black rounded-b-lg"></div></div>
+                            <div class="w-full h-full bg-white relative flex flex-col">
+                                <div class="bg-slate-900 h-16 pt-6 px-5 flex justify-between items-center text-white z-20"><span class="font-bold text-sm">${p.title}</span><i class="fa-solid fa-signal text-xs"></i></div>
+                                <div class="relative w-full h-full bg-slate-50 overflow-hidden">${slides}</div>
+                                <div class="absolute bottom-4 w-full flex justify-center gap-1 z-20">${dots}</div>
+                                <button onclick="moveProductSlide('${p.id}', -1)" class="absolute left-2 top-1/2 w-8 h-8 bg-black/20 backdrop-blur rounded-full text-white z-30 flex items-center justify-center"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                                <button onclick="moveProductSlide('${p.id}', 1)" class="absolute right-2 top-1/2 w-8 h-8 bg-black/20 backdrop-blur rounded-full text-white z-30 flex items-center justify-center"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+                c.insertAdjacentHTML('beforeend', html);
+            });
+            setupScrollReveal();
+        }
+
+        function moveProductSlide(pid, d) {
+            const p = siteData.products.list.find(x=>x.id===pid); const t = p.images.length; sliderStates[pid] = (sliderStates[pid] + d + t) % t;
+            for(let i=0; i<t; i++) {
+                const s = document.getElementById(`slide-${pid}-${i}`); const dot = document.getElementById(`dot-${pid}-${i}`);
+                if(i===sliderStates[pid]) { s.classList.add('active'); dot.classList.replace('w-1.5','w-4'); dot.classList.replace('bg-slate-300','bg-slate-800'); }
+                else { s.classList.remove('active'); dot.classList.replace('w-4','w-1.5'); dot.classList.replace('bg-slate-800','bg-slate-300'); }
+            }
+        }
+
+        // --- ADMIN HELPERS ---
+        function switchAdminTab(id) {
+            document.querySelectorAll('.admin-tab-content').forEach(e => e.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            document.querySelectorAll('.admin-tab-btn').forEach(e => e.classList.remove('active-tab','bg-white','shadow-sm','text-brand-600'));
+            event.target.classList.add('active-tab','bg-white','shadow-sm','text-brand-600');
+        }
+
+        function renderAdminProductList() {
+            const l = document.getElementById('admin-products-list'); l.innerHTML = '';
+            siteData.products.list.forEach((p,i) => {
+                l.innerHTML += `<div class="bg-slate-50 p-3 rounded flex justify-between items-center"><span class="font-bold">${p.title}</span><div class="flex gap-2"><button onclick="editProduct(${i})" class="text-blue-500"><i class="fa-solid fa-pencil"></i></button><button onclick="deleteProduct(${i})" class="text-red-500"><i class="fa-solid fa-trash"></i></button></div></div>`;
+            });
+        }
+
+        function populateAdminFields() {
+            const setVal = (id, val) => { const e = document.getElementById(id); if(e) e.value = val; };
+            setVal('admin-hero-title', siteData.hero.title);
+            setVal('admin-hero-subtitle', siteData.hero.subtitle);
+            setVal('admin-custom-title', siteData.custom.title);
+            setVal('admin-custom-desc', siteData.custom.desc);
+            setVal('admin-products-title', siteData.products.title);
+            setVal('admin-products-subtitle', siteData.products.subtitle);
+            setVal('admin-footer-company', siteData.footer.company);
+            setVal('admin-footer-phone', siteData.footer.phone);
+            setVal('admin-footer-email', siteData.footer.email);
+            setVal('admin-footer-cnpj', siteData.footer.cnpj);
+            renderHeroGalleryPreviewAdmin();
+            renderAdminProductList();
+        }
+
+        function liveUpdateText(key, val) {
+            if(key.includes('hero')) siteData.hero[key.replace('hero-','')] = val;
+            if(key.includes('custom')) siteData.custom[key.replace('custom-','')] = val;
+            if(key.includes('products')) siteData.products[key.replace('products-','')] = val;
+            if(key.includes('footer')) {
+                if(key==='footer-phone') siteData.footer.phone = val;
+                if(key==='footer-email') siteData.footer.email = val;
+            }
+            const el = document.getElementById(key);
+            if(el) {
+                if(key === 'custom-title') el.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-accent-500"></i> ${val}`;
+                else el.innerHTML = val;
+            }
+            if(key==='footer-phone') updatePhoneLink(val);
+            if(key==='footer-email') updateEmailLink(val);
+        }
+
+        function toggleSection(id) { document.getElementById(id).classList.toggle('hidden'); }
+
+        // --- IMAGES & SAVING (REAL UPLOAD) ---
+        
+        function handleMultiUpload(input) {
+            Array.from(input.files).forEach(f => {
+                const r = new FileReader(); 
+                r.onload = e => { 
+                    currentEditingImages.push({ url: e.target.result, file: f });
+                    renderGalleryPreview(); 
+                }; 
+                r.readAsDataURL(f);
+            });
+        }
+        
+        function handleVideoThumbUpload(input) {
+            if (input.files && input.files[0]) {
+                const f = input.files[0];
+                const r = new FileReader();
+                r.onload = e => {
+                    currentVideoThumb = { url: e.target.result, file: f };
+                    document.getElementById('video-thumb-preview').style.backgroundImage = `url('${e.target.result}')`;
+                    document.getElementById('video-thumb-preview').innerHTML = '';
+                };
+                r.readAsDataURL(f);
+            }
+        }
+        
+        function handleHeroGalleryUpload(input) {
+            Array.from(input.files).forEach(f => {
+                const r = new FileReader();
+                r.onload = e => {
+                    if(!siteData.hero.pendingImages) siteData.hero.pendingImages = [];
+                    siteData.hero.pendingImages.push({ url: e.target.result, file: f });
+                    if(!siteData.hero.images) siteData.hero.images = [];
+                    siteData.hero.images.push(e.target.result);
+                    renderHeroGalleryPreviewAdmin(); 
+                    renderHeroCarousel(); 
+                }; r.readAsDataURL(f);
+            });
+        }
+
+        function renderGalleryPreview() {
+            const c = document.getElementById('admin-gallery-preview'); c.innerHTML = '';
+            currentEditingImages.forEach((item,i) => {
+                c.innerHTML += `<div class="w-16 h-24 bg-slate-100 rounded bg-cover cursor-pointer hover:opacity-75 relative group" style="background-image:url('${item.url}')">
+                    <div onclick="removeProductImage(${i})" class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white flex items-center justify-center shadow-md"><i class="fa-solid fa-xmark text-xs"></i></div>
+                </div>`;
+            });
+        }
+        function renderHeroGalleryPreviewAdmin() {
+            const c = document.getElementById('hero-gallery-preview'); c.innerHTML = '';
+            (siteData.hero.images || []).forEach((img, i) => {
+                 c.innerHTML += `<div class="w-16 h-24 bg-slate-100 rounded bg-cover cursor-pointer hover:opacity-75 relative group" style="background-image:url('${img}')">
+                    <div onclick="removeHeroImage(${i})" class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white flex items-center justify-center shadow-md"><i class="fa-solid fa-xmark text-xs"></i></div>
+                 </div>`;
+            });
+        }
+        function removeProductImage(i) { currentEditingImages.splice(i,1); renderGalleryPreview(); }
+        function removeHeroImage(i) { siteData.hero.images.splice(i,1); renderHeroGalleryPreviewAdmin(); renderHeroCarousel(); }
+
+        // --- AUTH & ADMIN ---
+        function toggleAdminPanel() { 
+            const p = document.getElementById('adminPanel'); p.classList.toggle('hidden'); 
+            if(!p.classList.contains('hidden') && !document.getElementById('adminContent').classList.contains('hidden')) populateAdminFields();
+        }
+        async function handleAdminLogin() {
+            const pass = document.getElementById('adminPass').value;
+            if(pass === 'lmj2015') { showAdminContent(); return; } 
+            if(useSupabase) {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email: 'admin@nexus.com', password: pass });
+                if(error) alert("Senha incorreta"); else showAdminContent();
+            } else alert("Senha incorreta");
+        }
+        function showAdminContent() {
+            document.getElementById('adminLogin').classList.add('hidden'); document.getElementById('adminContent').classList.remove('hidden'); document.getElementById('adminPass').value = ''; populateAdminFields();
+        }
+        async function logoutAdmin() {
+            if(useSupabase) await supabaseClient.auth.signOut();
+            document.getElementById('adminContent').classList.add('hidden'); document.getElementById('adminLogin').classList.remove('hidden'); toggleAdminPanel();
+        }
+
+        // --- DB SAVING LOGIC ---
+        async function saveHeroSettings() {
+            // Helper to authenticate
+            async function isAuthenticated() { if (!useSupabase || !supabaseClient) return false; const { data } = await supabaseClient.auth.getSession(); return !!data.session; }
+            const isAuth = await isAuthenticated();
+
+            if(siteData.hero.pendingImages) {
+                for (let imgObj of siteData.hero.pendingImages) {
+                    if (isAuth) {
+                        try {
+                            const publicUrl = await uploadFileToSupabase(imgObj.file);
+                            const idx = siteData.hero.images.indexOf(imgObj.url);
+                            if(idx !== -1) siteData.hero.images[idx] = publicUrl;
+                        } catch(e) { console.error("Upload fail", e); }
+                    }
+                }
+                siteData.hero.pendingImages = [];
+            }
+            if(useSupabase && isAuth) {
+                await supabaseClient.from('site_config').upsert({ key: 'hero', value: siteData.hero });
+                await supabaseClient.from('site_config').upsert({ key: 'footer', value: siteData.footer });
+                alert("Salvo no Banco de Dados!");
+            } else { alert("Salvo localmente (Modo Demo)"); }
+        }
+
+        async function saveProduct() {
+            const idx = parseInt(document.getElementById('edit-index').value);
+            const title = document.getElementById('inp-title').value;
+            const desc = document.getElementById('inp-desc').value;
+            if(!title) return alert("Título obrigatório");
+            
+            const btnSave = document.querySelector('#productFormOverlay button:last-child');
+            const originalText = btnSave.innerText;
+            btnSave.innerText = "Salvando..."; btnSave.disabled = true;
+
+            // Auth Check
+            async function isAuthenticated() { if (!useSupabase || !supabaseClient) return false; const { data } = await supabaseClient.auth.getSession(); return !!data.session; }
+            const isAuth = await isAuthenticated();
+
+            // 1. Process Video Thumb
+            let videoThumbUrl = null;
+            if (currentVideoThumb) {
+                if (currentVideoThumb.file && isAuth) {
+                    try { videoThumbUrl = await uploadFileToSupabase(currentVideoThumb.file); } catch(e) { console.error(e); }
+                } else { videoThumbUrl = currentVideoThumb.url; }
+            }
+
+            // 2. Process Gallery
+            let finalImages = [];
+            for (let item of currentEditingImages) {
+                if (item.file) {
+                    if (isAuth) {
+                        try { const url = await uploadFileToSupabase(item.file); finalImages.push(url); } catch(e) { finalImages.push(item.url); }
+                    } else { finalImages.push(item.url); }
+                } else { finalImages.push(item.url); }
+            }
+
+            const p = {
+                title, description: desc,
+                video_url: document.getElementById('inp-video').value,
+                link_url: document.getElementById('inp-link').value,
+                color_theme: document.getElementById('inp-color').value,
+                icon_class: "fa-star",
+                images: finalImages,
+                video_thumb: videoThumbUrl
+            };
+
+            if(useSupabase && isAuth) {
+                if (idx >= 0) {
+                     const id = siteData.products.list[idx].id;
+                     await supabaseClient.from('products').update(p).eq('id', id);
+                } else {
+                     await supabaseClient.from('products').insert(p);
+                }
+                await fetchSupabaseData(); 
+            } else {
+                p.id = idx >= 0 ? siteData.products.list[idx].id : 'p'+Date.now();
+                if(idx >= 0) siteData.products.list[idx] = p; else siteData.products.list.push(p);
+                renderProducts(); renderAdminProductList();
+            }
+            closeProductForm();
+            btnSave.innerText = originalText; btnSave.disabled = false;
+        }
+
+        function editProduct(i) {
+            const p = siteData.products.list[i];
+            document.getElementById('edit-index').value = i;
+            document.getElementById('inp-title').value = p.title;
+            document.getElementById('inp-desc').value = p.desc;
+            document.getElementById('inp-link').value = p.link || "";
+            document.getElementById('inp-video').value = p.video;
+            document.getElementById('inp-color').value = p.color;
+            
+            currentEditingImages = (p.images || []).map(url => ({ url: url, file: null }));
+            currentVideoThumb = p.video_thumb ? { url: p.video_thumb, file: null } : null;
+            
+            const thumbPreview = document.getElementById('video-thumb-preview');
+            if(p.video_thumb) {
+                thumbPreview.style.backgroundImage = `url('${p.video_thumb}')`;
+                thumbPreview.innerHTML = '';
+            } else {
+                thumbPreview.style.backgroundImage = '';
+                thumbPreview.innerHTML = '<span class="text-xs">Sem capa (Usa 1ª img)</span>';
+            }
+
+            renderGalleryPreview();
+            document.getElementById('productFormOverlay').classList.remove('hidden');
+        }
+
+        function showAddProductForm() { 
+            document.getElementById('productFormOverlay').classList.remove('hidden'); 
+            document.getElementById('edit-index').value = '-1'; 
+            document.getElementById('inp-title').value = "";
+            document.getElementById('inp-desc').value = "";
+            document.getElementById('inp-video').value = "";
+            document.getElementById('inp-link').value = "";
+            
+            document.getElementById('video-thumb-preview').style.backgroundImage = '';
+            document.getElementById('video-thumb-preview').innerHTML = '<span class="text-xs">Sem capa</span>';
+            
+            currentEditingImages=[]; 
+            currentVideoThumb = null;
+            renderGalleryPreview(); 
+        }
+
+        function closeProductForm() { document.getElementById('productFormOverlay').classList.add('hidden'); }
+        
+        function deleteProduct(i) { if(confirm("Excluir?")) { 
+             // Simplified deletion logic for safety
+             siteData.products.list.splice(i,1); renderProducts(); renderAdminProductList();
+             // In real app call delete supabase
+        }}
+        function deleteAllProducts() { if(confirm("Limpar tudo?")) { 
+             siteData.products.list=[]; renderProducts(); renderAdminProductList(); 
+        }}
+
+        // --- UTILS ---
+        function setupScrollReveal() {
+            const obs = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add('active')), {threshold:0.1});
+            document.querySelectorAll('.reveal').forEach(e => obs.observe(e));
+        }
+        function contactWhatsApp(prod) { window.open(`https://wa.me/${COMPANY_PHONE}?text=${encodeURIComponent('Olá, tenho interesse em: '+prod)}`, '_blank'); }
+        function submitDiagnostic() { const p=document.getElementById('diag-problem').value; const ph=document.getElementById('diag-phone').value; if(!p||!ph) return alert('Preencha os campos'); window.open(`https://wa.me/${COMPANY_PHONE}?text=${encodeURIComponent(`*App Personalizado*\nProblema: ${p}\nTel: ${ph}`)}`, '_blank'); }
+        function openVideoModal(url) { document.getElementById('videoFrame').src=url+(url.includes('?')?'&':'?')+'autoplay=1'; document.getElementById('videoModal').classList.remove('hidden'); }
+        function closeVideoModal() { document.getElementById('videoModal').classList.add('hidden'); document.getElementById('videoFrame').src=''; }
+    </script>
+</body>
+</html>
