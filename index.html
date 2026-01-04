@@ -71,12 +71,10 @@
 <body class="text-slate-800 antialiased overflow-x-hidden selection:bg-brand-500 selection:text-white">
 
     <!-- NAVBAR PREMIUM -->
-    <!-- Adicionado h-full nos containers internos para a logo respeitar a altura do pai -->
     <nav class="fixed w-full z-50 transition-all duration-300 glass-panel h-40 flex items-center" id="navbar">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full h-full">
             <div class="flex justify-between items-center w-full h-full">
                 <div class="flex items-center gap-4 cursor-pointer group z-50 h-full py-2">
-                    <!-- LOGO AQUI: Adicionado 'rounded-full' para garantir formato circular -->
                     <img src="logo.png" alt="Nexus Logo" class="h-4/5 w-auto object-contain rounded-full group-hover:scale-105 transition duration-300" onerror="this.onerror=null; this.src='https://placehold.co/120x120?text=LOGO';">
                 </div>
                 
@@ -391,88 +389,6 @@
         </div>
     </div>
 
-    <!-- PRODUCT FORM -->
-    <div id="productFormOverlay" class="fixed inset-0 z-[130] hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col relative my-auto">
-            <div class="px-8 py-5 border-b flex justify-between items-center bg-slate-50">
-                <h3 class="font-bold text-xl text-slate-800" id="form-title">Produto</h3>
-                <button onclick="closeProductForm()" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-200 transition"><i class="fa-solid fa-xmark text-slate-500"></i></button>
-            </div>
-            <div class="p-8 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                <input type="hidden" id="edit-index">
-                
-                <!-- Main Info -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="col-span-full"><label class="block text-xs font-bold text-slate-500 uppercase mb-2">Nome</label><input type="text" id="inp-title" class="w-full border p-3 rounded-lg"></div>
-                    <div class="col-span-full"><label class="block text-xs font-bold text-slate-500 uppercase mb-2">Descrição</label><textarea id="inp-desc" rows="3" class="w-full border p-3 rounded-lg"></textarea></div>
-                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-2">Link Botão</label><input type="text" id="inp-link" placeholder="Vazio = WhatsApp" class="w-full border p-3 rounded-lg"></div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Tema</label>
-                        <select id="inp-color" class="w-full border p-3 rounded-lg bg-white"><option value="green">Verde</option><option value="brand">Azul</option><option value="purple">Roxo</option><option value="orange">Laranja</option><option value="red">Vermelho</option></select>
-                    </div>
-                </div>
-
-                <!-- Media -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-slate-100 pt-6">
-                     <h4 class="col-span-full text-sm font-bold text-slate-900 uppercase tracking-wide">Mídia e Vídeo</h4>
-                    <div class="col-span-full"><label class="block text-xs font-bold text-slate-500 uppercase mb-2">Vídeo Embed</label><input type="text" id="inp-video" class="w-full border p-3 rounded-lg font-mono text-sm"></div>
-                    <div class="col-span-full">
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Capa do Vídeo</label>
-                        <div id="video-thumb-preview" class="w-full h-32 bg-slate-100 rounded-lg mb-2 bg-cover bg-center border border-slate-200 flex items-center justify-center text-slate-400">
-                             <span class="text-xs">Sem capa (Usa 1ª img do celular)</span>
-                        </div>
-                        <label class="flex justify-center items-center border-2 border-dashed border-slate-300 rounded-xl p-4 hover:bg-slate-50 cursor-pointer">
-                            <span class="text-sm font-medium text-slate-500">Alterar Capa do Vídeo</span>
-                            <input type="file" id="inp-video-thumb" class="hidden" accept="image/*" onchange="handleVideoThumbUpload(this)">
-                        </label>
-                    </div>
-                    <div class="col-span-full">
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Imagens Celular (Carrossel)</label>
-                        <div class="flex gap-3 mb-3 flex-wrap" id="admin-gallery-preview"></div>
-                        <label class="flex justify-center items-center border-2 border-dashed border-slate-300 rounded-xl p-6 hover:bg-slate-50 cursor-pointer"><i class="fa-solid fa-plus text-2xl text-slate-400 mr-2"></i><span class="text-sm font-medium text-slate-500">Adicionar</span><input type="file" id="inp-img-multi" class="hidden" accept="image/*" multiple onchange="handleMultiUpload(this)"></label>
-                    </div>
-                </div>
-
-                <!-- Testimonials Section -->
-                <div class="border-t border-slate-100 pt-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h4 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Depoimentos (Máx 5)</h4>
-                        <span id="testimonial-count" class="text-xs font-bold bg-slate-100 px-2 py-1 rounded text-slate-500">0/5</span>
-                    </div>
-                    
-                    <!-- Add Testimonial Small Form -->
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4" id="add-testimonial-box">
-                        <div class="flex gap-4 items-start">
-                            <div class="flex-shrink-0">
-                                <!-- Correção Principal: Label e Input separados para evitar destruição do DOM -->
-                                <label for="new-testim-photo" class="w-16 h-16 bg-slate-200 rounded-full flex-shrink-0 cursor-pointer hover:opacity-80 flex items-center justify-center overflow-hidden border border-slate-300" id="new-testim-preview">
-                                    <i class="fa-solid fa-camera text-slate-400"></i>
-                                </label>
-                                <input type="file" class="hidden" id="new-testim-photo" accept="image/*" onchange="handleTestimPhotoPreview(this)">
-                            </div>
-                            <div class="flex-1 space-y-2">
-                                <input type="text" id="new-testim-name" placeholder="Nome do Cliente" class="w-full text-sm p-2 rounded border border-slate-300">
-                                <textarea id="new-testim-comment" rows="2" placeholder="Comentário..." class="w-full text-sm p-2 rounded border border-slate-300 resize-none"></textarea>
-                            </div>
-                            <button onclick="addTestimonialToList()" class="self-end bg-slate-800 text-white p-2 rounded-lg hover:bg-brand-600 transition" title="Adicionar Depoimento na Lista"><i class="fa-solid fa-plus"></i></button>
-                        </div>
-                        <p class="text-xs text-orange-500 font-semibold mt-2 hidden" id="testim-warning">⚠️ Clique no botão + acima para confirmar o depoimento antes de salvar o produto!</p>
-                    </div>
-
-                    <!-- List of Testimonials -->
-                    <div id="admin-testimonials-list" class="space-y-2">
-                        <!-- Items rendered here -->
-                    </div>
-                </div>
-
-            </div>
-            <div class="px-8 py-5 border-t bg-slate-50 flex justify-end gap-3">
-                <button onclick="closeProductForm()" class="px-6 py-3 text-slate-600 font-bold hover:text-slate-900">Cancelar</button>
-                <button onclick="saveProduct()" class="px-8 py-3 bg-brand-600 text-white font-bold rounded-xl shadow-lg hover:bg-brand-700">Salvar</button>
-            </div>
-        </div>
-    </div>
-
     <!-- VIDEO MODAL (HIDDEN - Now using Inline Player) -->
     <div id="videoModal" class="hidden"></div>
 
@@ -555,6 +471,72 @@
             currentSearchTerm = '';
             document.getElementById('search-clear').style.display = 'none';
             renderProducts();
+        }
+
+        // --- UTILS FOR VIDEO ---
+        function getYouTubeInfo(url) {
+            if (!url) return { id: '', isShort: false, embed: '' };
+            url = url.trim();
+            
+            let isShort = false;
+
+            // Check for iframe dimensions first (Robust detection)
+            if (url.startsWith('<iframe')) {
+                const widthMatch = url.match(/width=["'](\d+)["']/);
+                const heightMatch = url.match(/height=["'](\d+)["']/);
+                
+                if (widthMatch && heightMatch) {
+                    const w = parseInt(widthMatch[1]);
+                    const h = parseInt(heightMatch[1]);
+                    // Vertical logic: if height is greater than width, assume it's vertical (Short)
+                    if (h > w) {
+                        isShort = true;
+                    }
+                }
+                
+                // Extract src
+                const srcMatch = url.match(/src=["'](.*?)["']/);
+                if (srcMatch) url = srcMatch[1];
+            }
+
+            let videoId = '';
+            
+            // Handle Shorts links
+            if (url.includes('/shorts/')) {
+                isShort = true;
+                videoId = url.split('/shorts/')[1].split('?')[0]; 
+            } 
+            // Handle Standard YouTube links
+            else if (url.includes('youtube.com/watch?v=')) {
+                videoId = url.split('v=')[1].split('&')[0];
+            } 
+            // Handle youtu.be links
+            else if (url.includes('youtu.be/')) {
+                videoId = url.split('youtu.be/')[1].split('?')[0];
+            } 
+            // Handle embed links
+            else if (url.includes('youtube.com/embed/')) {
+                const parts = url.split('/embed/');
+                if(parts.length > 1) {
+                    videoId = parts[1].split('?')[0].split('"')[0];
+                }
+            }
+
+            if (!videoId && url.length === 11) videoId = url; // assume just ID passed
+
+            return {
+                id: videoId,
+                isShort: isShort,
+                embed: videoId ? `https://www.youtube.com/embed/${videoId}` : url
+            };
+        }
+
+        function playVideoInline(btn, embedUrl) {
+            const container = btn.closest('.group\\/vidcard');
+            const separator = embedUrl.includes('?') ? '&' : '?';
+            if(container) {
+                container.innerHTML = `<iframe src="${embedUrl}${separator}autoplay=1&rel=0" title="Video Player" class="w-full h-full rounded-2xl" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+            }
         }
 
         // --- SUPABASE FETCH ---
@@ -676,42 +658,6 @@
             m.classList.toggle('mobile-menu-active');
         }
 
-        function getYouTubeEmbed(url) {
-            if (!url) return '';
-            let videoId = '';
-            
-            // Handle Shorts links
-            if (url.includes('/shorts/')) {
-                videoId = url.split('/shorts/')[1].split('?')[0]; // Extract ID before query params
-            } 
-            // Handle Standard YouTube links
-            else if (url.includes('youtube.com/watch?v=')) {
-                videoId = url.split('v=')[1].split('&')[0];
-            } 
-            // Handle youtu.be links
-            else if (url.includes('youtu.be/')) {
-                videoId = url.split('youtu.be/')[1].split('?')[0];
-            } 
-            // Handle embed links
-            else if (url.includes('youtube.com/embed/')) {
-                return url;
-            }
-
-            return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
-        }
-
-        function isShorts(url) {
-            return url && url.includes('/shorts/');
-        }
-        
-        // NEW: Function to play video inline
-        function playVideoInline(btn, embedUrl) {
-            const container = btn.closest('.group\\/vidcard');
-            if(container) {
-                container.innerHTML = `<iframe src="${embedUrl}?autoplay=1&rel=0" title="Video Player" class="w-full h-full rounded-2xl" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-            }
-        }
-
         function renderProducts() {
             const c = document.getElementById('products-container');
             const noMsg = document.getElementById('no-products-msg');
@@ -776,11 +722,8 @@
 
                 const theme = p.color === 'green' ? 'text-green-600 bg-green-50' : p.color === 'purple' ? 'text-purple-600 bg-purple-50' : p.color === 'orange' ? 'text-orange-600 bg-orange-50' : p.color === 'red' ? 'text-red-600 bg-red-50' : 'text-brand-600 bg-brand-50';
                 const imgs = (p.images && p.images.length) ? p.images : ["https://placehold.co/640x1280/e2e8f0/1e293b?text=App"];
-                
-                // Use custom video thumb if available, otherwise first carousel image
                 const videoCover = p.video_thumb || imgs[0];
 
-                // LAYOUT LOGIC (ZIG-ZAG)
                 const isEven = index % 2 !== 0;
                 const textOrder = isEven ? 'lg:order-2' : 'lg:order-1';
                 const visualOrder = isEven ? 'lg:order-1' : 'lg:order-2';
@@ -796,12 +739,18 @@
                 });
 
                 let action = p.link ? `window.open('${p.link}','_blank')` : `contactWhatsApp('${p.title}')`;
-                let embedUrl = getYouTubeEmbed(p.video);
                 
-                // Determine Aspect Ratio based on link type
-                let videoAspectClass = 'aspect-video'; // Default 16:9
-                if (isShorts(p.video)) {
-                     videoAspectClass = 'aspect-shorts'; // Custom 9:16
+                // --- Video Logic ---
+                const ytInfo = getYouTubeInfo(p.video);
+                const embedUrl = ytInfo.embed;
+                
+                // If it's a short, we change the class to aspect-shorts AND restrict width
+                let videoAspectClass = 'aspect-video'; // 16:9
+                let videoWidthClass = 'w-full max-w-md lg:max-w-2xl'; // Wide for desktop
+
+                if (ytInfo.isShort) {
+                     videoAspectClass = 'aspect-shorts'; // 9:16
+                     videoWidthClass = 'w-full max-w-sm'; // Narrower for desktop so it doesn't blow up
                 }
 
                 // --- Testimonials HTML ---
@@ -856,16 +805,13 @@
                         <!-- Visual Side (70% width): Video + Phone -->
                         <div class="${visualWidth} flex flex-col lg:flex-row items-center justify-center lg:justify-end gap-6 order-1 ${visualOrder}">
                             
-                            <!-- Video Card - INLINE PLAYER (No OpenModal) -->
-                            <div class="w-full max-w-md lg:max-w-2xl ${videoAspectClass} bg-white rounded-2xl shadow-2xl border-4 border-white cursor-pointer hover:scale-105 transition duration-300 relative group/vidcard overflow-hidden" onclick="playVideoInline(this, '${embedUrl}')">
+                            <!-- Video Card -->
+                            <div class="${videoWidthClass} ${videoAspectClass} bg-white rounded-2xl shadow-2xl border-4 border-white cursor-pointer hover:scale-105 transition duration-300 relative group/vidcard overflow-hidden" onclick="playVideoInline(this, '${embedUrl}')">
                                 <img src="${videoCover}" class="w-full h-full object-cover rounded-lg group-hover/vidcard:opacity-90 transition">
                                 <div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover/vidcard:bg-black/40 transition pointer-events-none">
                                     <div class="w-16 h-16 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg play-btn-pulse group-hover/vidcard:scale-110 transition">
                                         <i class="fa-solid fa-play text-2xl text-brand-600 ml-1"></i>
                                     </div>
-                                </div>
-                                <div class="absolute bottom-4 left-4 right-4 pointer-events-none">
-                                    <span class="bg-black/70 backdrop-blur text-white text-xs font-bold px-3 py-1.5 rounded-lg">Assistir Demo</span>
                                 </div>
                             </div>
 
@@ -910,8 +856,6 @@
         function renderAdminProductList() {
             const l = document.getElementById('admin-products-list'); 
             l.innerHTML = '';
-            
-            // Build the entire HTML string first for performance
             let html = '';
             siteData.products.list.forEach((p, i) => {
                 html += `
@@ -921,7 +865,7 @@
                         <button onclick="editProduct(${i})" class="text-blue-500 hover:bg-blue-100 p-2 rounded transition" title="Editar">
                             <i class="fa-solid fa-pencil"></i>
                         </button>
-                        <button onclick="deleteProduct(${i}, this)" class="text-red-500 hover:bg-red-100 p-2 rounded transition" title="Excluir">
+                        <button onclick="tryDeleteProduct(${i})" class="text-red-500 hover:bg-red-100 p-2 rounded transition" title="Excluir">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
@@ -1255,8 +1199,21 @@
                     alert("Salvo com sucesso!");
                 } else {
                     // Local save
-                    p.id = idx >= 0 ? siteData.products.list[idx].id : 'p'+Date.now();
-                    if(idx >= 0) siteData.products.list[idx] = p; else siteData.products.list.push(p);
+                    // We need to map `description` -> `desc`, `video_url` -> `video`, etc. for local immediate update
+                    const localP = {
+                        id: idx >= 0 ? siteData.products.list[idx].id : 'p'+Date.now(),
+                        title: p.title,
+                        desc: p.description,
+                        video: p.video_url,
+                        link: p.link_url,
+                        color: p.color_theme,
+                        icon: p.icon_class,
+                        images: p.images,
+                        video_thumb: p.video_thumb,
+                        testimonials: p.testimonials
+                    };
+
+                    if(idx >= 0) siteData.products.list[idx] = localP; else siteData.products.list.push(localP);
                     renderProducts(); renderAdminProductList();
                     alert("Salvo APENAS LOCALMENTE (Modo Demo).\nIsso sumirá se você atualizar a página.");
                 }
@@ -1322,40 +1279,36 @@
 
         function closeProductForm() { document.getElementById('productFormOverlay').classList.add('hidden'); }
         
-        async function deleteProduct(i, btn) { 
-            console.log("Tentando excluir item index:", i);
-            if(!confirm("Tem certeza que deseja excluir este produto?")) return;
+        // CORREÇÃO AQUI: Função renomeada para 'tryDeleteProduct' para evitar conflitos de nomes
+        async function tryDeleteProduct(i) { 
+            // 1. Pega o botão que foi clicado usando o evento global do navegador
+            const btn = event.currentTarget; 
             
-            // Defensive check for button element
-            let originalIcon = '<i class="fa-solid fa-trash"></i>';
-            if(btn) {
-                originalIcon = btn.innerHTML;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; 
-                btn.disabled = true;
-            }
+            // 2. Salva o ícone original
+            const originalContent = btn.innerHTML;
+            
+            // 3. Feedback visual imediato (Spinner)
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            btn.disabled = true;
 
-            // Defensive check for product existence
-            if (!siteData.products.list || !siteData.products.list[i]) {
-                alert("Erro: Produto não encontrado na lista.");
-                if(btn) {
-                    btn.innerHTML = originalIcon;
-                    btn.disabled = false;
-                }
+            // 4. Confirmação
+            if(!confirm("Tem certeza que deseja excluir este produto?")) {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
                 return;
             }
-
+            
             const p = siteData.products.list[i];
-
+            
             try {
                  if(useSupabase && supabaseClient) {
                      // Check auth
                      const { data: { session } } = await supabaseClient.auth.getSession();
+                     
                      if(!session) {
                          alert("Você precisa estar logado para excluir.");
-                         if(btn) {
-                             btn.innerHTML = originalIcon;
-                             btn.disabled = false;
-                         }
+                         btn.innerHTML = originalContent;
+                         btn.disabled = false;
                          return;
                      }
 
@@ -1380,10 +1333,8 @@
             } catch (err) {
                  alert("Erro ao excluir: " + (err.message || err));
                  console.error("Erro Delete:", err);
-                 if(btn) {
-                     btn.innerHTML = originalIcon;
-                     btn.disabled = false;
-                 }
+                 btn.innerHTML = originalContent;
+                 btn.disabled = false;
             }
         }
 
