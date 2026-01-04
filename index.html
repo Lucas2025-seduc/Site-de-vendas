@@ -389,6 +389,89 @@
         </div>
     </div>
 
+    <!-- PRODUCT FORM -->
+    <div id="productFormOverlay" class="fixed inset-0 z-[130] hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col relative my-auto">
+            <div class="px-8 py-5 border-b flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-xl text-slate-800" id="form-title">Produto</h3>
+                <button onclick="closeProductForm()" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-200 transition"><i class="fa-solid fa-xmark text-slate-500"></i></button>
+            </div>
+            <div class="p-8 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                <input type="hidden" id="edit-index">
+                
+                <!-- Main Info -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="col-span-full"><label class="block text-xs font-bold text-slate-500 uppercase mb-2">Nome</label><input type="text" id="inp-title" class="w-full border p-3 rounded-lg"></div>
+                    <div class="col-span-full"><label class="block text-xs font-bold text-slate-500 uppercase mb-2">Descrição</label><textarea id="inp-desc" rows="3" class="w-full border p-3 rounded-lg"></textarea></div>
+                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-2">Link Botão</label><input type="text" id="inp-link" placeholder="Vazio = WhatsApp" class="w-full border p-3 rounded-lg"></div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Tema</label>
+                        <select id="inp-color" class="w-full border p-3 rounded-lg bg-white"><option value="green">Verde</option><option value="brand">Azul</option><option value="purple">Roxo</option><option value="orange">Laranja</option><option value="red">Vermelho</option></select>
+                    </div>
+                </div>
+
+                <!-- Media -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-slate-100 pt-6">
+                     <h4 class="col-span-full text-sm font-bold text-slate-900 uppercase tracking-wide">Mídia e Vídeo</h4>
+                    <div class="col-span-full"><label class="block text-xs font-bold text-slate-500 uppercase mb-2">Vídeo Embed</label><input type="text" id="inp-video" class="w-full border p-3 rounded-lg font-mono text-sm"></div>
+                    <div class="col-span-full">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Capa do Vídeo</label>
+                        <div id="video-thumb-preview" class="w-full h-32 bg-slate-100 rounded-lg mb-2 bg-cover bg-center border border-slate-200 flex items-center justify-center text-slate-400">
+                             <span class="text-xs">Sem capa (Usa 1ª img do celular)</span>
+                        </div>
+                        <label class="flex justify-center items-center border-2 border-dashed border-slate-300 rounded-xl p-4 hover:bg-slate-50 cursor-pointer">
+                            <span class="text-sm font-medium text-slate-500">Alterar Capa do Vídeo</span>
+                            <input type="file" id="inp-video-thumb" class="hidden" accept="image/*" onchange="handleVideoThumbUpload(this)">
+                        </label>
+                    </div>
+                    <div class="col-span-full">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Imagens Celular (Carrossel)</label>
+                        <div class="flex gap-3 mb-3 flex-wrap" id="admin-gallery-preview"></div>
+                        <label class="flex justify-center items-center border-2 border-dashed border-slate-300 rounded-xl p-6 hover:bg-slate-50 cursor-pointer"><i class="fa-solid fa-plus text-2xl text-slate-400 mr-2"></i><span class="text-sm font-medium text-slate-500">Adicionar</span><input type="file" id="inp-img-multi" class="hidden" accept="image/*" multiple onchange="handleMultiUpload(this)"></label>
+                    </div>
+                </div>
+
+                <!-- Testimonials Section -->
+                <div class="border-t border-slate-100 pt-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Depoimentos (Máx 5)</h4>
+                        <span id="testimonial-count" class="text-xs font-bold bg-slate-100 px-2 py-1 rounded text-slate-500">0/5</span>
+                    </div>
+                    
+                    <!-- Add Testimonial Small Form -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4" id="add-testimonial-box">
+                        <div class="flex gap-4 items-start">
+                            <div class="flex-shrink-0">
+                                <!-- Correção Principal: Label e Input separados para evitar destruição do DOM -->
+                                <label for="new-testim-photo" class="w-16 h-16 bg-slate-200 rounded-full flex-shrink-0 cursor-pointer hover:opacity-80 flex items-center justify-center overflow-hidden border border-slate-300" id="new-testim-preview">
+                                    <i class="fa-solid fa-camera text-slate-400"></i>
+                                </label>
+                                <input type="file" class="hidden" id="new-testim-photo" accept="image/*" onchange="handleTestimPhotoPreview(this)">
+                            </div>
+                            <div class="flex-1 space-y-2">
+                                <input type="text" id="new-testim-name" placeholder="Nome do Cliente" class="w-full text-sm p-2 rounded border border-slate-300">
+                                <textarea id="new-testim-comment" rows="2" placeholder="Comentário..." class="w-full text-sm p-2 rounded border border-slate-300 resize-none"></textarea>
+                            </div>
+                            <button onclick="addTestimonialToList()" class="self-end bg-slate-800 text-white p-2 rounded-lg hover:bg-brand-600 transition" title="Adicionar Depoimento na Lista"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                        <p class="text-xs text-orange-500 font-semibold mt-2 hidden" id="testim-warning">⚠️ Clique no botão + acima para confirmar o depoimento antes de salvar o produto!</p>
+                    </div>
+
+                    <!-- List of Testimonials -->
+                    <div id="admin-testimonials-list" class="space-y-2">
+                        <!-- Items rendered here -->
+                    </div>
+                </div>
+
+            </div>
+            <div class="px-8 py-5 border-t bg-slate-50 flex justify-end gap-3">
+                <button onclick="closeProductForm()" class="px-6 py-3 text-slate-600 font-bold hover:text-slate-900">Cancelar</button>
+                <!-- BOTÃO COM ID FIXO PARA GARANTIR FUNCIONAMENTO -->
+                <button onclick="saveProduct()" id="btn-save-product" class="px-8 py-3 bg-brand-600 text-white font-bold rounded-xl shadow-lg hover:bg-brand-700">Salvar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- VIDEO MODAL (HIDDEN - Now using Inline Player) -->
     <div id="videoModal" class="hidden"></div>
 
@@ -805,7 +888,7 @@
                         <!-- Visual Side (70% width): Video + Phone -->
                         <div class="${visualWidth} flex flex-col lg:flex-row items-center justify-center lg:justify-end gap-6 order-1 ${visualOrder}">
                             
-                            <!-- Video Card -->
+                            <!-- Video Card - INLINE PLAYER (No OpenModal) -->
                             <div class="${videoWidthClass} ${videoAspectClass} bg-white rounded-2xl shadow-2xl border-4 border-white cursor-pointer hover:scale-105 transition duration-300 relative group/vidcard overflow-hidden" onclick="playVideoInline(this, '${embedUrl}')">
                                 <img src="${videoCover}" class="w-full h-full object-cover rounded-lg group-hover/vidcard:opacity-90 transition">
                                 <div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover/vidcard:bg-black/40 transition pointer-events-none">
