@@ -275,7 +275,7 @@
     <div id="adminPanel" class="fixed inset-0 z-[120] hidden bg-dark-900/90 backdrop-blur-md overflow-hidden flex flex-col transition-opacity">
         <div class="flex-1 max-w-7xl w-full mx-auto my-4 bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row h-[95vh] ring-1 ring-slate-900/10 relative">
             
-            <!-- Login Overlay (COBRE TUDO) -->
+            <!-- Login Overlay -->
             <div id="adminLogin" class="absolute inset-0 bg-slate-50 z-[100] flex items-center justify-center p-4">
                 <div class="max-w-md w-full text-center bg-white p-10 rounded-3xl shadow-xl border border-slate-100 relative">
                     <button onclick="toggleAdminPanel()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -296,7 +296,6 @@
                         <div class="w-8 h-8 bg-slate-900 rounded flex items-center justify-center text-white text-sm"><i class="fa-solid fa-sliders"></i></div>
                         Admin
                     </h2>
-                    <!-- STATUS BAR ADICIONADA -->
                     <div id="admin-status" class="mt-2 text-xs font-bold px-1"></div>
                 </div>
                 <nav class="flex-1 overflow-y-auto p-4 space-y-2">
@@ -312,7 +311,7 @@
                 </div>
             </div>
 
-            <!-- Mobile Sidebar Toggle (visible only on mobile) -->
+            <!-- Mobile Sidebar Toggle -->
             <div class="md:hidden p-4 border-b border-slate-200 bg-white flex justify-between items-center">
                 <span class="font-bold">Menu Admin</span>
                 <select onchange="switchAdminTab(this.value)" class="p-2 border rounded text-sm w-32">
@@ -849,7 +848,7 @@
                             <p class="text-lg text-slate-600 font-light leading-relaxed">${p.desc}</p>
                             <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
                                 <button onclick="${action}" class="px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-500/30 transition transform hover:-translate-y-1 flex items-center justify-center gap-3">
-                                    <i class="fa-solid fa-rocket"></i> Acessar Agora
+                                    <i class="fa-solid fa-rocket"></i> Testar Grátis Agora
                                 </button>
                             </div>
                         </div>
@@ -909,10 +908,26 @@
         }
 
         function renderAdminProductList() {
-            const l = document.getElementById('admin-products-list'); l.innerHTML = '';
-            siteData.products.list.forEach((p,i) => {
-                l.innerHTML += `<div class="bg-slate-50 p-3 rounded flex justify-between items-center"><span class="font-bold">${p.title}</span><div class="flex gap-2"><button onclick="editProduct(${i})" class="text-blue-500"><i class="fa-solid fa-pencil"></i></button><button onclick="deleteProduct(${i})" class="text-red-500"><i class="fa-solid fa-trash"></i></button></div></div>`;
+            const l = document.getElementById('admin-products-list'); 
+            l.innerHTML = '';
+            
+            // Build the entire HTML string first for performance
+            let html = '';
+            siteData.products.list.forEach((p, i) => {
+                html += `
+                <div class="bg-slate-50 p-3 rounded flex justify-between items-center mb-2">
+                    <span class="font-bold truncate mr-2">${p.title}</span>
+                    <div class="flex gap-2 flex-shrink-0">
+                        <button onclick="editProduct(${i})" class="text-blue-500 hover:bg-blue-100 p-2 rounded transition" title="Editar">
+                            <i class="fa-solid fa-pencil"></i>
+                        </button>
+                        <button onclick="deleteProduct(${i}, this)" class="text-red-500 hover:bg-red-100 p-2 rounded transition" title="Excluir">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>`;
             });
+            l.innerHTML = html;
         }
 
         function populateAdminFields() {
@@ -1011,6 +1026,90 @@
         function removeProductImage(i) { currentEditingImages.splice(i,1); renderGalleryPreview(); }
         function removeHeroImage(i) { siteData.hero.images.splice(i,1); renderHeroGalleryPreviewAdmin(); renderHeroCarousel(); }
 
+        // --- TESTIMONIAL LOGIC ---
+        function handleTestimPhotoPreview(input) {
+            if (input.files && input.files[0]) {
+                const f = input.files[0];
+                const r = new FileReader();
+                r.onload = e => {
+                    const preview = document.getElementById('new-testim-preview');
+                    if(preview) preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+                };
+                r.readAsDataURL(f);
+            }
+        }
+        
+        function addTestimonialToList() {
+            const name = document.getElementById('new-testim-name').value;
+            const comment = document.getElementById('new-testim-comment').value;
+            const fileInp = document.getElementById('new-testim-photo');
+            
+            if(!name || !comment) return alert("Preencha nome e comentário.");
+            if(currentEditingTestimonials.length >= 5) return alert("Máximo de 5 depoimentos atingido.");
+
+            let newItem = { name, comment, photo: null, file: null };
+            
+            if(fileInp && fileInp.files && fileInp.files[0]) {
+                const f = fileInp.files[0];
+                const r = new FileReader();
+                r.onload = e => {
+                    newItem.photo = e.target.result; // temp preview
+                    newItem.file = f; // for upload later
+                    currentEditingTestimonials.push(newItem);
+                    renderAdminTestimonials();
+                    resetTestimForm();
+                };
+                r.readAsDataURL(f);
+            } else {
+                newItem.photo = "https://placehold.co/100x100/e2e8f0/64748b?text="+name.charAt(0);
+                currentEditingTestimonials.push(newItem);
+                renderAdminTestimonials();
+                resetTestimForm();
+            }
+        }
+
+        function resetTestimForm() {
+            document.getElementById('new-testim-name').value = '';
+            document.getElementById('new-testim-comment').value = '';
+            const fileInp = document.getElementById('new-testim-photo');
+            if(fileInp) fileInp.value = '';
+            
+            const preview = document.getElementById('new-testim-preview');
+            if(preview) preview.innerHTML = '<i class="fa-solid fa-camera text-slate-400"></i>';
+            checkTestimInput();
+        }
+
+        function removeTestimonial(i) {
+            currentEditingTestimonials.splice(i, 1);
+            renderAdminTestimonials();
+        }
+
+        function renderAdminTestimonials() {
+            const list = document.getElementById('admin-testimonials-list');
+            const count = document.getElementById('testimonial-count');
+            list.innerHTML = '';
+            
+            currentEditingTestimonials.forEach((t, i) => {
+                list.innerHTML += `
+                    <div class="flex items-center gap-3 p-3 bg-white rounded border border-slate-200">
+                        <img src="${t.photo}" class="w-10 h-10 rounded-full object-cover">
+                        <div class="flex-1 min-w-0">
+                            <p class="font-bold text-sm truncate">${t.name}</p>
+                            <p class="text-xs text-slate-500 truncate">${t.comment}</p>
+                        </div>
+                        <button onclick="removeTestimonial(${i})" class="text-red-500 hover:bg-red-50 p-2 rounded"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+            });
+            
+            count.innerText = `${currentEditingTestimonials.length}/5`;
+            
+            // Hide add form if max reached
+            const addBox = document.getElementById('add-testimonial-box');
+            if(currentEditingTestimonials.length >= 5) addBox.classList.add('opacity-50', 'pointer-events-none');
+            else addBox.classList.remove('opacity-50', 'pointer-events-none');
+        }
+
         // --- AUTH & ADMIN ---
         function toggleAdminPanel() { 
             const p = document.getElementById('adminPanel'); p.classList.toggle('hidden'); 
@@ -1018,11 +1117,26 @@
         }
         async function handleAdminLogin() {
             const pass = document.getElementById('adminPass').value;
-            if(pass === 'lmj2015') { showAdminContent(); return; } 
+            // Fallback for local
+            if(pass === 'lmj2015') { 
+                document.getElementById('admin-status').innerHTML = '<span class="text-orange-500 flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation"></i> Modo Local (Não Salva)</span>';
+                alert("Atenção: Você entrou no Modo Local.\n\nAlterações NÃO serão salvas no banco de dados e sumirão ao atualizar a página.\n\nPara salvar de verdade, use a senha do usuário 'admin@nexus.com' cadastrado no Supabase.");
+                showAdminContent(); 
+                return; 
+            } 
+            
+            // Supabase Auth
             if(useSupabase) {
                 const { data, error } = await supabaseClient.auth.signInWithPassword({ email: 'admin@nexus.com', password: pass });
-                if(error) alert("Senha incorreta"); else showAdminContent();
-            } else alert("Senha incorreta");
+                if(!error && data.session) {
+                    // Login Sucesso no Banco
+                    document.getElementById('admin-status').innerHTML = '<span class="text-green-500 flex items-center gap-2"><i class="fa-solid fa-database"></i> Conectado ao Banco</span>';
+                    showAdminContent();
+                    return;
+                }
+            }
+            
+            alert("Senha incorreta ou erro de conexão.");
         }
         function showAdminContent() {
             document.getElementById('adminLogin').classList.add('hidden'); document.getElementById('adminContent').classList.remove('hidden'); document.getElementById('adminPass').value = ''; populateAdminFields();
@@ -1058,6 +1172,14 @@
         }
 
         async function saveProduct() {
+            // Check for forgotten testimonial
+            const pendingName = document.getElementById('new-testim-name').value;
+            const pendingComment = document.getElementById('new-testim-comment').value;
+            if(pendingName || pendingComment) {
+                const confirmSave = confirm("Você preencheu os campos de depoimento mas NÃO CLICOU no botão (+) para adicioná-lo à lista.\n\nSe continuar, esse depoimento será PERDIDO.\n\nDeseja salvar mesmo assim?");
+                if(!confirmSave) return;
+            }
+
             const idx = parseInt(document.getElementById('edit-index').value);
             const title = document.getElementById('inp-title').value;
             const desc = document.getElementById('inp-desc').value;
@@ -1071,67 +1193,80 @@
             async function isAuthenticated() { if (!useSupabase || !supabaseClient) return false; const { data } = await supabaseClient.auth.getSession(); return !!data.session; }
             const isAuth = await isAuthenticated();
 
-            // 1. Process Video Thumb
-            let videoThumbUrl = null;
-            if (currentVideoThumb) {
-                if (currentVideoThumb.file && isAuth) {
-                    try { videoThumbUrl = await uploadFileToSupabase(currentVideoThumb.file); } catch(e) { console.error(e); }
-                } else { videoThumbUrl = currentVideoThumb.url; }
-            }
+            try {
+                // 1. Process Video Thumb
+                let videoThumbUrl = null;
+                if (currentVideoThumb) {
+                    if (currentVideoThumb.file && isAuth) {
+                        try { videoThumbUrl = await uploadFileToSupabase(currentVideoThumb.file); } catch(e) { console.error("Video Thumb Upload Failed", e); videoThumbUrl = currentVideoThumb.url; }
+                    } else { videoThumbUrl = currentVideoThumb.url; }
+                }
 
-            // 2. Process Gallery
-            let finalImages = [];
-            for (let item of currentEditingImages) {
-                if (item.file) {
-                    if (isAuth) {
-                        try { const url = await uploadFileToSupabase(item.file); finalImages.push(url); } catch(e) { finalImages.push(item.url); }
+                // 2. Process Gallery
+                let finalImages = [];
+                for (let item of currentEditingImages) {
+                    if (item.file) {
+                        if (isAuth) {
+                            try { const url = await uploadFileToSupabase(item.file); finalImages.push(url); } catch(e) { console.error("Gallery Img Failed", e); finalImages.push(item.url); }
+                        } else { finalImages.push(item.url); }
                     } else { finalImages.push(item.url); }
-                } else { finalImages.push(item.url); }
-            }
-
-            // 3. Process Testimonials
-            let finalTestimonials = [];
-            for(let t of currentEditingTestimonials) {
-                let tUrl = t.photo;
-                if(t.file && isAuth) {
-                     try {
-                         const publicUrl = await uploadFileToSupabase(t.file);
-                         tUrl = publicUrl;
-                     } catch(e) {
-                         console.error("Erro upload depoimento:", e);
-                         alert("Erro ao fazer upload da foto de " + t.name + ". O depoimento será salvo sem foto nova.");
-                         // Keep old url or temp url if upload fails, to prevent data loss
-                     }
                 }
-                finalTestimonials.push({ name: t.name, comment: t.comment, photo: tUrl });
-            }
 
-            const p = {
-                title, description: desc,
-                video_url: document.getElementById('inp-video').value,
-                link_url: document.getElementById('inp-link').value,
-                color_theme: document.getElementById('inp-color').value,
-                icon_class: "fa-star",
-                images: finalImages,
-                video_thumb: videoThumbUrl,
-                testimonials: finalTestimonials
-            };
+                // 3. Process Testimonials
+                let finalTestimonials = [];
+                for(let t of currentEditingTestimonials) {
+                    let tUrl = t.photo;
+                    if(t.file && isAuth) {
+                         try {
+                             const publicUrl = await uploadFileToSupabase(t.file);
+                             tUrl = publicUrl;
+                         } catch(e) {
+                             console.error("Erro upload depoimento:", e);
+                             alert("Erro ao fazer upload da foto de " + t.name + ". O depoimento será salvo sem foto nova.");
+                             // Keep old url or temp url if upload fails, to prevent data loss
+                         }
+                    }
+                    finalTestimonials.push({ name: t.name, comment: t.comment, photo: tUrl });
+                }
 
-            if(useSupabase && isAuth) {
-                if (idx >= 0) {
-                     const id = siteData.products.list[idx].id;
-                     await supabaseClient.from('products').update(p).eq('id', id);
+                const p = {
+                    title, description: desc,
+                    video_url: document.getElementById('inp-video').value,
+                    link_url: document.getElementById('inp-link').value,
+                    color_theme: document.getElementById('inp-color').value,
+                    icon_class: "fa-star",
+                    images: finalImages,
+                    video_thumb: videoThumbUrl,
+                    testimonials: finalTestimonials
+                };
+
+                if(useSupabase && isAuth) {
+                    if (idx >= 0) {
+                         const id = siteData.products.list[idx].id;
+                         const { error } = await supabaseClient.from('products').update(p).eq('id', id);
+                         if(error) throw error;
+                    } else {
+                         const { error } = await supabaseClient.from('products').insert(p);
+                         if(error) throw error;
+                    }
+                    await fetchSupabaseData(); 
+                    renderProducts(); 
+                    renderAdminProductList();
+                    alert("Salvo com sucesso!");
                 } else {
-                     await supabaseClient.from('products').insert(p);
+                    // Local save
+                    p.id = idx >= 0 ? siteData.products.list[idx].id : 'p'+Date.now();
+                    if(idx >= 0) siteData.products.list[idx] = p; else siteData.products.list.push(p);
+                    renderProducts(); renderAdminProductList();
+                    alert("Salvo APENAS LOCALMENTE (Modo Demo).\nIsso sumirá se você atualizar a página.");
                 }
-                await fetchSupabaseData(); 
-            } else {
-                p.id = idx >= 0 ? siteData.products.list[idx].id : 'p'+Date.now();
-                if(idx >= 0) siteData.products.list[idx] = p; else siteData.products.list.push(p);
-                renderProducts(); renderAdminProductList();
+                closeProductForm();
+            } catch(e) {
+                console.error("Erro ao salvar produto:", e);
+                alert("Erro ao salvar: " + (e.message || e));
+            } finally {
+                btnSave.innerText = originalText; btnSave.disabled = false;
             }
-            closeProductForm();
-            btnSave.innerText = originalText; btnSave.disabled = false;
         }
 
         function editProduct(i) {
@@ -1171,6 +1306,7 @@
             document.getElementById('inp-desc').value = "";
             document.getElementById('inp-video').value = "";
             document.getElementById('inp-link').value = "";
+            document.getElementById('inp-color').value = "brand";
             
             document.getElementById('video-thumb-preview').style.backgroundImage = '';
             document.getElementById('video-thumb-preview').innerHTML = '<span class="text-xs">Sem capa</span>';
@@ -1186,12 +1322,72 @@
 
         function closeProductForm() { document.getElementById('productFormOverlay').classList.add('hidden'); }
         
-        function deleteProduct(i) { if(confirm("Excluir?")) { 
-             // Simplified deletion logic for safety
-             siteData.products.list.splice(i,1); renderProducts(); renderAdminProductList();
-             // In real app call delete supabase
-        }}
-        function deleteAllProducts() { if(confirm("Limpar tudo?")) { 
+        async function deleteProduct(i, btn) { 
+            console.log("Tentando excluir item index:", i);
+            if(!confirm("Tem certeza que deseja excluir este produto?")) return;
+            
+            // Defensive check for button element
+            let originalIcon = '<i class="fa-solid fa-trash"></i>';
+            if(btn) {
+                originalIcon = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; 
+                btn.disabled = true;
+            }
+
+            // Defensive check for product existence
+            if (!siteData.products.list || !siteData.products.list[i]) {
+                alert("Erro: Produto não encontrado na lista.");
+                if(btn) {
+                    btn.innerHTML = originalIcon;
+                    btn.disabled = false;
+                }
+                return;
+            }
+
+            const p = siteData.products.list[i];
+
+            try {
+                 if(useSupabase && supabaseClient) {
+                     // Check auth
+                     const { data: { session } } = await supabaseClient.auth.getSession();
+                     if(!session) {
+                         alert("Você precisa estar logado para excluir.");
+                         if(btn) {
+                             btn.innerHTML = originalIcon;
+                             btn.disabled = false;
+                         }
+                         return;
+                     }
+
+                     const { error } = await supabaseClient.from('products').delete().eq('id', p.id);
+                     
+                     if(error) {
+                         throw error;
+                     } else { 
+                         // Sucesso
+                         await fetchSupabaseData(); 
+                         renderProducts(); 
+                         renderAdminProductList(); 
+                         alert("Produto excluído com sucesso!");
+                     }
+                 } else {
+                     // Local mode
+                     siteData.products.list.splice(i,1); 
+                     renderProducts(); 
+                     renderAdminProductList();
+                     alert("Produto excluído (Modo Local).");
+                 }
+            } catch (err) {
+                 alert("Erro ao excluir: " + (err.message || err));
+                 console.error("Erro Delete:", err);
+                 if(btn) {
+                     btn.innerHTML = originalIcon;
+                     btn.disabled = false;
+                 }
+            }
+        }
+
+        function deleteAllProducts() { if(confirm("Limpar TODOS os produtos?")) { 
              siteData.products.list=[]; renderProducts(); renderAdminProductList(); 
         }}
 
